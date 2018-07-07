@@ -49,7 +49,15 @@ select * from actor where first_name = "Harpo"
 
 -- 4d. Perhaps we were too hasty in changing GROUCHO to HARPO. It turns out that GROUCHO was the correct name after all! In a single query, if the first name of the actor is currently HARPO, change it to GROUCHO. Otherwise, change the first name to MUCHO GROUCHO, as that is exactly what the actor will be with the grievous error.
 -- BE CAREFUL NOT TO CHANGE THE FIRST NAME OF EVERY ACTOR TO MUCHO GROUCHO, HOWEVER! (Hint: update the record using a unique identifier.)
-update actor set first_name = "Groucho" where first_name = "Harpo"
+update actor set first_name = 
+	(Case
+		When first_name = "Harpo" Then "Groucho"
+        Else 'Mucho Groucho'
+	End)
+where actor_id = 172;
+
+select * from actor where first_name = "Mucho Groucho"
+-- Uh Oh, I might have accidentally turned them all into Mucho Groucho LOL. I ran the code without "where actor_id = 172"
 
 -- 5a. You cannot locate the schema of the address table. Which query would you use to re-create it?
 show create table address
@@ -172,18 +180,6 @@ from store
 inner join address on store.address_id = address.address_id
 inner join city on address.city_id = city.city_id
 inner join country on city.country_id = country.country_id
-    
-SELECT  a.*, b.*
-FROM    tbl_customers a
-            INNER JOIN tbl_emails_sent b
-                ON a.customerid = b.customerid
-            INNER JOIN
-            (
-                SELECT      customerid, MAX(datesent) maxSent
-                FROM        tbl_emails_sent
-                GROUP BY    customerid
-            ) c ON  c.customerid = b.customerid AND
-                    c.maxSent = b.datesent
 
 -- 7h. List the top five genres in gross revenue in descending order. (Hint: you may need to use the following tables: category, film_category, inventory, payment, and rental.)
 select * from category
@@ -194,15 +190,30 @@ select * from payment -- payment_id, customer_id, staff_id, rental_id, amount
 
 select category.name as Name, sum(payment.amount) as Gross_Revenue
 from category
-inner join film_category on category.category_id = film_category.category_id
-inner join inventory on inventory.film_id = film_category.film_id
-inner join rental on rental.inventory_id = inventory.inventory_id
-inner join payment on payment.rental_id = rental.rental_id
+left join film_category on category.category_id = film_category.category_id
+left join inventory on inventory.film_id = film_category.film_id
+left join rental on rental.inventory_id = inventory.inventory_id
+left join payment on payment.rental_id = rental.rental_id
 group by category.name
+order by Gross_Revenue desc
+limit 5;
 
 -- 8a. In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. 
 -- Use the solution from the problem above to create a view. If you haven't solved 7h, you can substitute another query to create a view.
-
+create view Top_5_By_Gross_Revenue
+as (
+	select category.name as Name, sum(payment.amount) as Gross_Revenue
+	from category
+	left join film_category on category.category_id = film_category.category_id
+	left join inventory on inventory.film_id = film_category.film_id
+	left join rental on rental.inventory_id = inventory.inventory_id
+	left join payment on payment.rental_id = rental.rental_id
+	group by category.name
+	order by Gross_Revenue desc
+	limit 5
+);
 
 -- 8b. How would you display the view that you created in 8a?
+select * from Top_5_By_Gross_Revenue
 -- 8c. You find that you no longer need the view top_five_genres. Write a query to delete it.
+drop view Top_5_By_Gross_Revenue
