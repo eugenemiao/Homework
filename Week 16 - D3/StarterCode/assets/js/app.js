@@ -201,7 +201,57 @@ function visualization(theData) {
             .filter(".active")
             .classed("active", false)
             .classed("inactive", true);
-            
+        //switch the text just clicked to active
+        clickedText.classed("inactive", false).classsed("active", true);
     }
+
+    //scatter plot
+    xMinMax()
+    yMinMax()
+
+    // now that the min and max values for x and y are defined
+    // we can build our scales
+    var xScale = d3.scaleLinear()
+                    .domain([xMin, xMax])
+                    .range([margin + labelArea, width - margin]);
+
+    var yScale = d3.scaleLinear()
+                    .domain([yMin, yMax])
+                    .range([height - margin - labelArea, margin])
+    
+    //pass the scales into the axis methods to create our axes
+    var xAxis = d3.axisBottom(xScale);
+    var yAxis = d3.axisLeft(yScale);
+
+    // determine the x and y tick counts
+    function tickCount() {
+        if (width <= 500) {
+            xAxis.ticks(5);
+            yAxis.ticks(5);
+        }
+        else {
+            xAxis.ticks(10);
+            yAxis.ticks(10);
+        }
+    }
+
+    tickCount();
+
+    //append axis to the svg as group elements
+    svg
+        .append("g")
+        .call(xAxis)
+        .attr("class", "xAxis")
+        .attr("transform", "translate(0, " + (height - margin - labelArea) + ")");
+    
+    svg
+        .append("g")
+        .call(yAxis)
+        .attr("class", "yAxis")
+        .attr("transform", "translate(" + (margin + labelArea) + ", 0")
+    
+    //we append the circles for each row of data
+    var theCircles = svg.selectAll("g theCircles").data(theData).enter()
+    
 }
 
